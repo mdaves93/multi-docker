@@ -1,0 +1,22 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t mpdaves/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run mpdaves/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mpdaves/multi-client ./client
+  - docker build -t mpdaves/multi-nginx ./nginx
+  - docker build -t mpdaves/multi-server ./server
+  - docker build -t mpdaves/multi-worker ./worker
+
+  - echo "$docker_password" | docker login -u "$docker_id" --password-stdin
+
+  - docker push mpdaves/multi-client
+  - docker push mpdaves/multi-nginx
+  - docker push mpdaves/multi-server
+  - docker push mpdaves/multi-worker
